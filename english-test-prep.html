@@ -1,0 +1,519 @@
+<title>English Test Prep</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: one centered study column (max 760px); home = grid of topic cards, game = one question card at a time */
+:root{
+  --bg:#EEF3F9; --surface:#FFFFFF; --ink:#1C2541; --muted:#5B6683; --line:#D5DDEA;
+  --marker:#FFC93C; --marker-ink:#1C2541; --accent:#3A57C4; --accent-soft:#E3E9FB;
+  --ok:#1F8A63; --ok-soft:#DDF3EA; --bad:#D2383F; --bad-soft:#FBE3E4;
+  --display:"Fredoka","Trebuchet MS",system-ui,sans-serif;
+  --body:"Nunito","Segoe UI",system-ui,sans-serif;
+  --emoji:"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111727; --surface:#1B2338; --ink:#E7ECF6; --muted:#9AA6C2; --line:#2C3754;
+  --marker:#FFC93C; --marker-ink:#1C2541; --accent:#8EA6FF; --accent-soft:#25305A;
+  --ok:#4CC99A; --ok-soft:#173A31; --bad:#FF7A80; --bad-soft:#40202A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111727; --surface:#1B2338; --ink:#E7ECF6; --muted:#9AA6C2; --line:#2C3754;
+  --marker:#FFC93C; --marker-ink:#1C2541; --accent:#8EA6FF; --accent-soft:#25305A;
+  --ok:#4CC99A; --ok-soft:#173A31; --bad:#FF7A80; --bad-soft:#40202A; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 48px}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(2rem,6vw,2.8rem);font-weight:700}
+.hl{background:linear-gradient(transparent 55%,var(--marker) 55%,var(--marker) 92%,transparent 92%);color:inherit;padding:0 .1em}
+.lead{color:var(--muted);margin:6px 0 0;max-width:60ch}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.topic{background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;text-align:left;display:flex;flex-direction:column;gap:4px;transition:transform .12s,border-color .12s}
+.topic:hover{transform:translateY(-2px);border-color:var(--accent)}
+.topic b{font-family:var(--display);font-weight:600;font-size:1.08rem}
+.topic small{color:var(--muted);font-size:.85rem}
+.topic .best{font-size:.78rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.topic .best.got{color:var(--ok)}
+.feature{grid-column:1/-1;background:var(--accent);color:#fff;border-color:var(--accent);flex-direction:row;align-items:center;gap:16px}
+.feature small,.feature .best{color:#ffffffcc}
+.feature .big{font-family:var(--emoji);font-size:2.4rem;line-height:1}
+.feature.alt{background:var(--marker);color:var(--marker-ink);border-color:var(--marker)}
+.feature.alt small,.feature.alt .best{color:#1C2541b0}
+.sec-label{font-size:.78rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:8px 0 -8px}
+.bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.back{background:none;border:1.5px solid var(--line);border-radius:999px;padding:6px 14px;font-weight:700;color:var(--muted)}
+.back:hover{border-color:var(--accent);color:var(--accent)}
+.prog{flex:1;min-width:120px;height:10px;background:var(--line);border-radius:99px;overflow:hidden}
+.prog i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .3s}
+.count{font-weight:800;font-variant-numeric:tabular-nums;color:var(--muted)}
+.card{background:var(--surface);border:1.5px solid var(--line);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:16px}
+.tag{font-size:.75rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.q{font-family:var(--display);font-weight:600;font-size:clamp(1.3rem,4.4vw,1.7rem);line-height:1.3;overflow-wrap:anywhere}
+.opts{display:grid;gap:10px}
+.opt{display:flex;align-items:center;gap:12px;text-align:left;background:var(--bg);border:2px solid var(--line);border-radius:12px;padding:12px 14px;font-weight:700;font-size:1.05rem;transition:border-color .12s,background .12s}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt .k{flex:none;width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:var(--surface);border:1.5px solid var(--line);font-size:.85rem;color:var(--muted)}
+.opt:disabled{cursor:default}
+.opt.ok{border-color:var(--ok);background:var(--ok-soft)}
+.opt.bad{border-color:var(--bad);background:var(--bad-soft)}
+.fb{border-radius:12px;padding:12px 14px;font-weight:600}
+.fb.ok{background:var(--ok-soft);color:var(--ok)}
+.fb.bad{background:var(--bad-soft);color:var(--bad)}
+.fb p{margin:4px 0 0;color:var(--ink);font-weight:600}
+.btn{background:var(--accent);color:#fff;border:0;border-radius:12px;padding:12px 20px;font-weight:800;font-size:1rem}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn.y{background:var(--marker);color:var(--marker-ink)}
+:root[data-theme="dark"] .btn:not(.ghost):not(.y){color:#111727}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn:not(.ghost):not(.y){color:#111727}}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+details.notes{background:var(--surface);border:1.5px dashed var(--line);border-radius:14px;padding:12px 16px}
+details.notes summary{font-weight:800;cursor:pointer;color:var(--accent)}
+.notes .body{margin-top:10px;font-size:.95rem}
+.notes .body p{margin:6px 0}
+.notes table{border-collapse:collapse;font-size:.92rem;margin:6px 0}
+.notes td,.notes th{border:1px solid var(--line);padding:4px 10px;text-align:left}
+.tbl{overflow-x:auto}
+code,.en{font-weight:800;color:var(--accent)}
+.scene{font-family:var(--emoji);font-size:clamp(4rem,18vw,6.5rem);line-height:1.1;text-align:center;background:var(--bg);border-radius:14px;padding:22px 10px;letter-spacing:.06em}
+.who{align-self:flex-start;background:var(--marker);color:var(--marker-ink);font-weight:800;border-radius:999px;padding:4px 12px;font-size:.9rem}
+input[type=text]{width:100%;font:inherit;font-size:1.1rem;font-weight:700;color:var(--ink);background:var(--bg);border:2px solid var(--line);border-radius:12px;padding:12px 14px}
+.model{font-family:var(--display);font-size:1.3rem;font-weight:600;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.say{background:var(--accent-soft);color:var(--accent);border:0;border-radius:999px;padding:6px 12px;font-weight:800;font-size:.9rem}
+.score{font-family:var(--display);font-size:clamp(3rem,12vw,4.5rem);font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.miss{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none}
+.miss li{border-left:4px solid var(--bad);background:var(--bg);border-radius:0 10px 10px 0;padding:10px 12px;font-size:.95rem}
+.miss .c{color:var(--ok);font-weight:800}
+.hint{color:var(--muted);font-size:.9rem;margin:0}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap" id="app"></div>
+
+<script>
+// Cada pregunta: [enunciado, [correcta, incorrecta, ...], explicación]
+const TOPICS = [
+{id:"pc", name:"Present Continuous", es:"Lo que pasa ahora mismo",
+notes:`<p><span class="en">am / is / are + verbo-ing</span> → acciones que pasan <b>ahora</b> o son temporales.</p>
+<p>I'm eating · She's sleeping · They aren't working · <b>Are</b> you listening?</p>
+<p>Palabras clave: <i>now, right now, at the moment, today, Look!, Listen!</i></p>
+<p>Ortografía: write → writ<b>ing</b> · run → ru<b>nn</b>ing · swim → swi<b>mm</b>ing · lie → l<b>y</b>ing · study → study<b>ing</b></p>`,
+qs:[
+["Look! The baby ___ (sleep).",["is sleeping","sleeps","are sleeping","sleeping"],"he / she / it + is + -ing."],
+["They ___ TV right now.",["are watching","is watching","watch","watching"],"they + are + -ing. 'right now' = ahora mismo."],
+["I ___ (not / work) today.",["'m not working","don't working","isn't working","not working"],"I am not (I'm not) + -ing."],
+["___ you listening to me?",["Are","Do","Is","Does"],"Pregunta: Are + you + -ing?"],
+["What ___ she doing?",["is","does","are","do"],"What is she doing? = ¿Qué está haciendo ella?"],
+["run → ___",["running","runing","runnig","runeing"],"Consonante-vocal-consonante: se duplica la última letra."],
+["write → ___",["writing","writeing","writting","writng"],"Si termina en -e, se quita la e."],
+["study → ___",["studying","studing","studiing","studyng"],"Si termina en -y, solo agregas -ing."],
+["lie → ___",["lying","lieing","liing","lyeing"],"-ie cambia a -y: lie → lying, die → dying."],
+["We ___ dinner at the moment.",["are having","have","is having","are have"],"'at the moment' → present continuous."],
+["He ___ a red T-shirt today.",["is wearing","wears","are wearing","wear"],"Algo temporal (today) → present continuous."],
+["Is it raining? — No, it ___.",["isn't","doesn't","aren't","not"],"Respuesta corta: No, it isn't."],
+["Are your parents working? — Yes, they ___.",["are","do","is","are working"],"Respuesta corta: Yes, they are (sin -ing)."],
+["Where ___ you going?",["are","do","is","does"],"Where are you going? = ¿A dónde vas?"]
+]},
+{id:"spc", name:"Simple Present vs Continuous", es:"Rutinas vs ahora mismo",
+notes:`<p><b>Simple present</b> → rutinas, hábitos, hechos: <span class="en">I work · She works · Do you work?</span></p>
+<p><b>Present continuous</b> → ahora mismo o temporal: <span class="en">I'm working · She's working</span></p>
+<p>Simple: <i>every day, usually, always, never, on Mondays</i>. Continuous: <i>now, today, at the moment, Look!</i></p>
+<p>Verbos de estado casi nunca van en -ing: <i>know, like, love, hate, want, need, understand</i>.</p>`,
+qs:[
+["My dad ___ in a bank. (es su trabajo)",["works","is working","work","working"],"Trabajo permanente / rutina → simple present."],
+["Today my dad ___ from home.",["is working","works","work","are working"],"Algo temporal (today) → present continuous."],
+["I ___ coffee every morning.",["drink","am drinking","drinks","drinking"],"'every morning' = rutina → simple present."],
+["Shh! The baby ___.",["is sleeping","sleeps","sleep","sleeping"],"Está pasando ahora → continuous."],
+["She ___ English very well.",["speaks","is speaking","speak","speaking"],"Habilidad / hecho general → simple present."],
+["Water ___ at 100 °C.",["boils","is boiling","boil","boiling"],"Hechos científicos → simple present."],
+["Look! It ___.",["is snowing","snows","snow","snowing"],"'Look!' indica que pasa ahora."],
+["How often ___ you go to the gym?",["do","are","does","is"],"Simple present: do / does en preguntas."],
+["What ___ you do? — I'm a teacher.",["do","are","does","is"],"'What do you do?' pregunta por tu trabajo."],
+["What ___ you doing? — I'm cooking.",["are","do","does","is"],"'What are you doing?' = qué haces ahora."],
+["Why ___ you wearing a coat? It's hot!",["are","do","is","does"],"wearing → are + -ing."],
+["___ she play tennis on Saturdays?",["Does","Is","Do","Are"],"she + rutina → Does she play...?"],
+["I ___ the answer.",["know","am knowing","knows","knowing"],"know es verbo de estado → nunca 'am knowing'."],
+["He usually ___ the bus, but today he ___.",["takes / is walking","is taking / walks","take / walking","takes / walks"],"usually → simple; today → continuous."],
+["I ___ a new phone. Mine is broken.",["want","am wanting","wants","wanting"],"want es verbo de estado → simple present."]
+]},
+{id:"op", name:"Object Pronouns", es:"me, you, him, her, it, us, them",
+notes:`<div class="tbl"><table><tr><th>Sujeto</th><td>I</td><td>you</td><td>he</td><td>she</td><td>it</td><td>we</td><td>they</td></tr>
+<tr><th>Objeto</th><td><b>me</b></td><td><b>you</b></td><td><b>him</b></td><td><b>her</b></td><td><b>it</b></td><td><b>us</b></td><td><b>them</b></td></tr></table></div>
+<p>El sujeto va <b>antes</b> del verbo; el objeto va <b>después</b> del verbo o de una preposición (with, for, to, at).</p>
+<p><span class="en">She loves him.</span> · <span class="en">Come with us!</span> · <span class="en">Look at them.</span></p>`,
+qs:[
+["I love my grandma. I visit ___ every week.",["her","she","him","them"],"grandma = she → her."],
+["Where are my keys? I can't find ___.",["them","it","they","its"],"keys (plural) → them."],
+["Peter is nice. I like ___.",["him","he","his","her"],"Peter = he → him."],
+["I have a problem. Can you help ___?",["me","I","my","mine"],"I → me."],
+["We're at the park. Come with ___!",["us","we","our","them"],"we → us."],
+["This song is great. Listen to ___!",["it","its","them","him"],"song (cosa) → it."],
+["Sara and Ana are my friends. I play with ___.",["them","they","their","us"],"Sara and Ana = they → them."],
+["Mom made a cake for my sister and ___.",["me","I","my","mine"],"Después de preposición (for) va objeto: me."],
+["___ like pizza.",["We","Us","Our","Ours"],"Antes del verbo va el sujeto: We."],
+["Mr. Lee is my teacher. Do you know ___?",["him","he","her","his"],"Mr. Lee → him."],
+["The cat is hungry. Give ___ some food.",["it","its","them","him"],"animal / cosa → it."],
+["Tom and I are going out. Call ___ later!",["us","we","them","me"],"Tom and I = we → us."],
+["My parents are in Spain. I miss ___ a lot.",["them","they","their","him"],"parents = they → them."]
+]},
+{id:"lk", name:"Likes & Dislikes + V-ing", es:"love, like, don't mind, hate…",
+notes:`<p><b>Verbo de gusto + verbo-ing</b>: <span class="en">I love swimming · She hates getting up early</span></p>
+<p>❤️❤️ <b>love</b> → ❤️ <b>like / enjoy / be into</b> → 😐 <b>don't mind</b> → 👎 <b>don't like</b> → 👎👎 <b>hate / can't stand</b></p>
+<p>he / she / it: <span class="en">She likes</span> · <span class="en">She doesn't like</span> · <span class="en">Does she like...? — Yes, she does.</span></p>`,
+qs:[
+["I love ___. (swim)",["swimming","swim","to swimming","swims"],"love / like / hate + V-ing. swim → swimming."],
+["She doesn't mind ___ the dishes.",["washing","wash","washes","to washing"],"don't mind + V-ing = no me molesta."],
+["They hate ___ up early.",["getting","get","gets","to getting"],"hate + V-ing."],
+["Do you like ___? (dance)",["dancing","danceing","dance","dances"],"dance → dancing (se quita la e)."],
+["He can't stand ___. (wait)",["waiting","wait","waits","to waiting"],"can't stand = no soportar, + V-ing."],
+["My brother enjoys ___. (cook)",["cooking","cook","cooks","to cooking"],"enjoy + V-ing, siempre."],
+["I'm really into ___ video games.",["playing","play","plays","to playing"],"be into + V-ing = me encanta / me interesa."],
+["Which is the MOST negative?",["can't stand","don't mind","like","don't like"],"love > like > don't mind > don't like > hate / can't stand."],
+["Which is neutral (ni bien ni mal)?",["don't mind","love","hate","enjoy"],"don't mind = me da igual / no me molesta."],
+["Does she like reading? — Yes, she ___.",["does","likes","is","do"],"Respuesta corta con does."],
+["I ___ like running. It's boring.",["don't","doesn't","am not","not"],"I + don't + like."],
+["He ___ reading comics.",["likes","like","liking","is like"],"he / she / it → likes (con -s)."],
+["My parents ___ watching horror films.",["don't like","doesn't like","not like","aren't like"],"they → don't like."],
+["What ___ you like doing on weekends?",["do","are","does","is"],"What do you like doing...?"]
+]},
+{id:"can", name:"Can / Can't", es:"Habilidad y permiso",
+notes:`<p><span class="en">can / can't + verbo base</span> (sin -s, sin to, sin -ing). Igual para todas las personas.</p>
+<p>✅ <span class="en">She can swim.</span> ❌ She cans swim / She can swims / She can to swim.</p>
+<p>Pregunta: <span class="en">Can you drive? — Yes, I can. / No, I can't.</span></p>
+<p>También sirve para pedir permiso: <span class="en">Can I open the window?</span></p>`,
+qs:[
+["___ you swim? — Yes, I can.",["Can","Do","Are","Does"],"Pregunta: Can + sujeto + verbo."],
+["She can ___ the guitar.",["play","plays","to play","playing"],"Después de can: verbo base."],
+["Which sentence is correct?",["He can speak French.","He cans speak French.","He can speaks French.","He can to speak French."],"can nunca cambia con he / she / it."],
+["Can he drive? — No, he ___.",["can't","doesn't","isn't","no can"],"Respuesta corta: No, he can't."],
+["Penguins ___ fly, but they ___ swim.",["can't / can","can / can't","can / can","can't / can't"],"Los pingüinos no vuelan, pero sí nadan."],
+["Fish ___ walk.",["can't","can","cans","not can"],"Los peces no pueden caminar."],
+["___ I open the window? It's hot.",["Can","Do","Am","Does"],"can también se usa para pedir permiso."],
+["I ___ come to your party. I'm sick.",["can't","don't can","not can","can"],"No puedo = can't (cannot)."],
+["What ___ you do? — I can cook and sing.",["can","do","are","does"],"Habilidades: What can you do?"],
+["'cannot' is the same as…",["can't","can","could","don't"],"cannot = can't."],
+["My grandma is 80 but she can ___ very fast.",["walk","walks","walking","to walk"],"can + verbo base."],
+["Can your sister ___ a bike?",["ride","rides","riding","drive"],"ride a bike / horse · drive a car."]
+]},
+{id:"verbs", name:"Verbs & Phrases", es:"do, make, take, have, go…",
+notes:`<p><b>do</b>: homework, the dishes, exercise · <b>make</b>: the bed, a mistake, a cake · <b>take</b>: a shower, a photo, the bus · <b>have</b>: breakfast, lunch, dinner, a shower, a party · <b>go</b>: shopping, swimming, to bed, to school</p>
+<p>Otros: <i>get up, wake up, brush your teeth, walk the dog, watch TV, listen to music, ride a bike, play the guitar, hang out with friends, catch the bus</i></p>`,
+qs:[
+["___ your teeth",["brush","wash up","clean up","make"],"brush your teeth = cepillarse los dientes."],
+["___ homework",["do","make","take","have"],"do homework (nunca 'make homework')."],
+["___ a shower",["take","do","make","go"],"take a shower (o have a shower)."],
+["___ the bed",["make","do","take","have"],"make the bed = hacer la cama."],
+["___ breakfast",["have","do","make up","go"],"have breakfast / lunch / dinner."],
+["___ shopping",["go","do","make","take"],"go shopping, go swimming, go running."],
+["___ the dishes",["do","make","take","have"],"do the dishes = lavar la loza."],
+["___ to music",["listen","hear","watch","see"],"listen TO music."],
+["___ a photo",["take","make","do","have"],"take a photo = sacar una foto."],
+["___ a mistake",["make","do","take","have"],"make a mistake = equivocarse."],
+["___ to bed",["go","get","take","make"],"go to bed = acostarse."],
+["___ up at 7 o'clock",["get","go","make","take"],"get up = levantarse · wake up = despertarse."],
+["___ the dog",["walk","go","run","ride"],"walk the dog = pasear al perro."],
+["___ TV",["watch","see","look","listen"],"watch TV."],
+["___ a bike",["ride","drive","go","do"],"ride a bike / horse · drive a car."],
+["___ out with friends",["hang","do","make","take"],"hang out with friends = juntarse con amigos."],
+["___ the guitar",["play","touch","do","make"],"play the guitar / the piano."],
+["___ the bus",["catch","do","make","go"],"catch the bus (o take the bus)."]
+]},
+{id:"wd", name:"Weather & Dates", es:"Clima, meses, días, ordinales",
+notes:`<p><span class="en">What's the weather like?</span> → It's <b>sunny / cloudy / windy / foggy / rainy / snowy / stormy</b> · It's <b>raining / snowing</b></p>
+<p>Temperatura: <b>freezing</b> → <b>cold</b> → <b>cool</b> → <b>warm</b> → <b>hot</b></p>
+<p>Ordinales: 1st first · 2nd second · 3rd third · 4th fourth · 5th fifth · 12th twelfth · 20th twentieth · 21st twenty-first · 31st thirty-first</p>
+<p>Fecha: <span class="en">It's the fifth of May / May the fifth.</span> Meses y días van con mayúscula.</p>`,
+qs:[
+["☀️ It's ___.",["sunny","sun","sunning","snowy"],"sun → sunny."],
+["🌧️ It's ___.",["raining","rain","rains","snowing"],"It's raining (o It's rainy)."],
+["❄️ It's ___.",["snowing","snow","snows","raining"],"It's snowing (o It's snowy)."],
+["💨 It's ___.",["windy","wind","winding","cloudy"],"wind → windy."],
+["☁️ It's ___.",["cloudy","cloud","clouds","foggy"],"cloud → cloudy."],
+["🌫️ It's ___.",["foggy","fog","cloudy","stormy"],"fog → foggy (niebla)."],
+["⛈️ It's ___.",["stormy","storm","sunny","windy"],"storm → stormy."],
+["🥶 −5 °C. It's ___.",["freezing","hot","warm","cool"],"freezing = muy, muy frío."],
+["🥵 35 °C. It's ___.",["hot","cool","cold","freezing"],"hot = caluroso."],
+["How do you ask about the weather?",["What's the weather like?","How the weather is?","What weather is?","How's weather like?"],"What's the weather like today?"],
+["The 12th month is ___.",["December","November","October","January"],"January … December."],
+["1st = ___",["first","one","oneth","firth"],"1st first, 2nd second, 3rd third."],
+["22nd = ___",["twenty-second","twenty-two","twenty-twoth","twentieth-second"],"Solo el último número es ordinal."],
+["3rd = ___",["third","threeth","thirth","three"],"3rd = third."],
+["What's the date today?",["It's the fifth of May.","It's five May.","It's May five day.","Today is the May five."],"the fifth of May / May the fifth."],
+["Which month comes after April?",["May","March","June","August"],"…March, April, May, June…"],
+["The day after Wednesday is ___.",["Thursday","Tuesday","Friday","Saturday"],"Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday."],
+["Spring, summer, ___, winter",["autumn","autum","september","season"],"autumn (UK) = fall (US)."]
+]},
+{id:"freq", name:"Frequency Adverbs", es:"always, usually, never, twice a week…",
+notes:`<p><b>always</b> 100% · <b>usually</b> 90% · <b>often</b> 70% · <b>sometimes</b> 50% · <b>hardly ever / rarely</b> 10% · <b>never</b> 0%</p>
+<p>Posición: <b>después</b> de be → <span class="en">She is always late.</span> · <b>antes</b> de otros verbos → <span class="en">I usually get up at 7.</span></p>
+<p>Expresiones (al final): <span class="en">once a week · twice a month · three times a year · every day</span></p>
+<p>Pregunta: <span class="en">How often do you...?</span></p>`,
+qs:[
+["100% → I ___ brush my teeth.",["always","usually","often","sometimes"],"always = siempre."],
+["0% → I ___ eat meat.",["never","always","sometimes","often"],"never = nunca."],
+["Which sentence is correct?",["She is never late.","She never is late.","Never she is late.","She is late never."],"Con be, el adverbio va DESPUÉS: is never."],
+["Which sentence is correct?",["I usually get up at 7.","I get up usually at 7.","Usually I get at 7 up.","I get usually up at 7."],"Con otros verbos, el adverbio va ANTES: usually get up."],
+["He goes to the gym ___ a week. (2 veces)",["twice","two","second","double"],"once (1) · twice (2) · three times (3)…"],
+["We visit grandma ___ a month. (1 vez)",["once","one","one time","first"],"once a month = una vez al mes."],
+["I play football three ___ a week.",["times","time","timer","twice"],"three times a week."],
+["How ___ do you go to the cinema?",["often","much","many","long"],"How often…? = ¿Con qué frecuencia?"],
+["They ___ happy. (siempre)",["are always","always are","always is","is always"],"be + always."],
+["I go swimming ___ day.",["every","all","each the","always"],"every day / every week / every Monday."],
+["Do you ___ eat fast food?",["ever","never","always ever","once"],"¿Alguna vez…? = Do you ever…?"],
+["'hardly ever' means…",["almost never","almost always","often","sometimes"],"hardly ever = casi nunca (≈ rarely)."],
+["Which is MORE frequent?",["often","sometimes","hardly ever","never"],"often 70% > sometimes 50%."],
+["Choose the correct one:",["She usually does her homework.","She does usually her homework.","Usually does she her homework.","She does her homework usually always."],"El adverbio va antes del verbo principal."]
+]},
+{id:"prep", name:"In / At / On", es:"Tiempo y lugar",
+notes:`<div class="tbl"><table><tr><th></th><th>Tiempo</th><th>Lugar</th></tr>
+<tr><td><b>AT</b></td><td>horas (at 7), at night, at noon, at the weekend, at Christmas</td><td>punto exacto: at home, at school, at work, at the bus stop</td></tr>
+<tr><td><b>ON</b></td><td>días y fechas: on Monday, on May 5th, on my birthday</td><td>superficie: on the table, on the wall, on the 2nd floor, on the bus</td></tr>
+<tr><td><b>IN</b></td><td>meses, años, estaciones: in May, in 2026, in summer, in the morning</td><td>dentro: in the box, in the kitchen, in Chile, in the car</td></tr></table></div>
+<p><b>FOR</b> + duración: for two hours, for three days.</p>`,
+qs:[
+["___ 7 o'clock",["at","on","in","for"],"AT + hora."],
+["___ Monday",["on","in","at","for"],"ON + días."],
+["___ May",["in","on","at","for"],"IN + meses."],
+["___ May 5th",["on","in","at","for"],"ON + fechas."],
+["___ 2026",["in","on","at","for"],"IN + años."],
+["___ the morning",["in","on","at","for"],"in the morning / afternoon / evening."],
+["___ night",["at","in","on","for"],"Excepción: AT night."],
+["___ summer",["in","on","at","for"],"IN + estaciones."],
+["___ my birthday",["on","in","at","for"],"ON + días especiales."],
+["___ Monday morning",["on","in","at","for"],"Día + parte del día → ON."],
+["I study ___ two hours every day.",["for","in","on","at"],"FOR + duración."],
+["The milk is ___ the fridge.",["in","on","at","for"],"IN = dentro."],
+["The book is ___ the table.",["on","in","at","for"],"ON = sobre una superficie."],
+["I live ___ Chile.",["in","on","at","for"],"IN + países y ciudades."],
+["There's a picture ___ the wall.",["on","in","at","for"],"on the wall."],
+["We're waiting ___ the bus stop.",["at","in","on","for"],"AT + punto específico."],
+["My office is ___ the second floor.",["on","in","at","for"],"on the … floor."],
+["He's ___ home.",["at","in","on","to"],"at home (sin 'the')."],
+["She's ___ the car.",["in","on","at","for"],"IN a car / taxi, pero ON a bus / train / plane."],
+["They're ___ the bus.",["on","at","for","by"],"on the bus."]
+]},
+{id:"fam", name:"Family & Possessive 's", es:"Familia y el 's",
+notes:`<p><b>grandparents</b> (grandfather, grandmother) · <b>parents</b> (father, mother) · <b>uncle / aunt</b> · <b>cousin</b> · <b>brother / sister</b> · <b>son / daughter</b> · <b>nephew / niece</b> (sobrino/a) · <b>grandson / granddaughter</b> · <b>husband / wife</b> · <b>only child</b> (hijo único)</p>
+<p>Posesivo: <span class="en">my dad's car</span> (el auto de mi papá) · plural con -s → solo apóstrofe: <span class="en">my parents' house</span> · plural irregular: <span class="en">the children's toys</span></p>
+<p>Ojo: <span class="en">Peter's at home</span> = Peter <b>is</b> at home.</p>`,
+qs:[
+["My mother's mother is my ___.",["grandmother","aunt","stepmother","niece"],"grandmother = abuela."],
+["My father's brother is my ___.",["uncle","cousin","nephew","grandfather"],"uncle = tío."],
+["My aunt's son is my ___.",["cousin","nephew","brother","uncle"],"cousin = primo / prima."],
+["My sister's daughter is my ___.",["niece","nephew","cousin","aunt"],"niece = sobrina."],
+["My brother's son is my ___.",["nephew","niece","cousin","grandson"],"nephew = sobrino."],
+["My mother and father are my ___.",["parents","relatives","grandparents","fathers"],"parents = padres. relatives = parientes."],
+["My son's son is my ___.",["grandson","nephew","granddaughter","cousin"],"grandson = nieto."],
+["I don't have brothers or sisters. I'm an ___.",["only child","alone child","one child","single child"],"only child = hijo/a único/a."],
+["This is the car of my dad. → This is ___ car.",["my dad's","my dads","my dads'","dad's my"],"persona + 's + cosa."],
+["the toys of the children → the ___ toys",["children's","childrens'","childs'","childrens"],"Plural irregular (children) → 's."],
+["the room of my two brothers → my ___ room",["brothers'","brother's","brothers","brothers's"],"Plural con -s → solo apóstrofe."],
+["'Peter's at home.' Here 's means…",["is","possessive","has","us"],"Peter's at home = Peter is at home."],
+["'Peter's bike is blue.' Here 's means…",["possessive","is","has","us"],"Peter's bike = la bici de Peter."],
+["Whose bag is this? — It's ___.",["Maria's","Maria","Marias","of Maria"],"Whose? = ¿De quién? → Maria's."],
+["___ name is Ana. (el nombre de mi hermana)",["My sister's","My sisters","Sister's my","My sister"],"my sister's name."]
+]}
+];
+
+// Escenas: [emoji, sujeto a usar, respuesta modelo, grupos de palabras requeridas]
+const SCENES = [
+["👩🚿","she","She's taking a shower.",[["she is"],["taking","having","showering"]]],
+["👧👦🏊","they","They're playing in the pool.",[["they are"],["playing","swimming"]]],
+["👨📖","he","He's reading a book.",[["he is"],["reading"]]],
+["👩‍🍳🍳","she","She's cooking.",[["she is"],["cooking","making","frying","preparing"]]],
+["🚴‍♂️","he","He's riding a bike.",[["he is"],["riding","cycling"]]],
+["💃🎶","she","She's dancing.",[["she is"],["dancing"]]],
+["👦👦⚽","they","They're playing football.",[["they are"],["playing"],["football","soccer"]]],
+["👨🛏️💤","he","He's sleeping.",[["he is"],["sleeping"]]],
+["👩🎸","she","She's playing the guitar.",[["she is"],["playing"],["guitar"]]],
+["🏃‍♀️","she","She's running.",[["she is"],["running","jogging"]]],
+["👨🐕","he","He's walking the dog.",[["he is"],["walking"],["dog"]]],
+["👨‍👩‍👧🍽️","they","They're having dinner.",[["they are"],["having","eating"]]],
+["👩🪥","she","She's brushing her teeth.",[["she is"],["brushing"],["teeth"]]],
+["👦📺","he","He's watching TV.",[["he is"],["watching"],["tv","television"]]],
+["👩📱💬","she","She's talking on the phone.",[["she is"],["talking","speaking","calling","chatting"]]],
+["👧✏️📓","she","She's doing her homework.",[["she is"],["doing","writing","studying"]]],
+["👨🚗","he","He's driving a car.",[["he is"],["driving"]]],
+["👩🎤","she","She's singing.",[["she is"],["singing"]]],
+["👨🧽🍽️","he","He's washing the dishes.",[["he is"],["washing","doing","cleaning"],["dishes","plates"]]],
+["👫☔","they","They're walking in the rain.",[["they are"],["walking"]]],
+["👩🛒","she","She's shopping.",[["she is"],["shopping","buying"]]],
+["👦🎮","he","He's playing video games.",[["he is"],["playing"],["video games","videogames","games"]]],
+["👨☕","he","He's drinking coffee.",[["he is"],["drinking","having"],["coffee"]]],
+["👩🎨","she","She's painting.",[["she is"],["painting","drawing"]]],
+["👨📸","he","He's taking a photo.",[["he is"],["taking"],["photo","picture","photograph"]]],
+["👶🍼","the baby","The baby's drinking milk.",[["is"],["drinking","having"],["milk"]]],
+["👩✈️🧳","she","She's travelling.",[["she is"],["travelling","traveling","flying","going"]]],
+["👨‍🏫📚","he","He's teaching.",[["he is"],["teaching","giving"]]]
+];
+
+const $app = document.getElementById("app");
+const store = {
+  get(k){ try{ return JSON.parse(localStorage.getItem("etp:"+k)); }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem("etp:"+k, JSON.stringify(v)); }catch(e){} }
+};
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const shuffle = a => { a = a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+const speak = t => { try{ const u=new SpeechSynthesisUtterance(t); u.lang="en-US"; u.rate=.9; speechSynthesis.cancel(); speechSynthesis.speak(u); }catch(e){} };
+let state = {};
+let onKey = null;
+document.addEventListener("keydown", e => { if(onKey && e.target.tagName!=="INPUT") onKey(e); });
+
+function bestTxt(id){ const b = store.get("best:"+id); return b==null ? "Sin intentos" : "Mejor: "+b+"%"; }
+
+function home(){
+  onKey = null;
+  const cards = TOPICS.map(t => `<button class="topic" data-t="${t.id}"><b>${esc(t.name)}</b><small>${esc(t.es)}</small><span class="best ${store.get("best:"+t.id)>=80?"got":""}">${bestTxt(t.id)}</span></button>`).join("");
+  $app.innerHTML = `
+  <header><h1>English <span class="hl">Test Prep</span></h1>
+  <p class="lead">Elige un tema, lee el repaso rápido y responde. Cada ronda tiene 10 preguntas al azar, así que puedes repetir muchas veces. Teclas 1–4 para responder y Enter para seguir.</p></header>
+  <div class="grid">
+    <button class="topic feature" data-t="pics"><span class="big">👩🚿</span><span><b>What are they doing?</b><br><small>Mira la imagen y di qué está haciendo: “She's taking a shower”.</small><br><span class="best">${bestTxt("pics")}</span></span></button>
+    <button class="topic feature alt" data-t="mix"><span class="big">📝</span><span><b>Simulacro de prueba</b><br><small>20 preguntas mezcladas de todos los temas.</small><br><span class="best">${bestTxt("mix")}</span></span></button>
+  </div>
+  <p class="sec-label">Temas</p>
+  <div class="grid">${cards}</div>`;
+  $app.querySelectorAll("[data-t]").forEach(b => b.onclick = () => {
+    const id = b.dataset.t; id==="pics" ? startPics() : startQuiz(id);
+  });
+}
+
+function startQuiz(id){
+  let pool, n = 10, topic = TOPICS.find(t => t.id===id);
+  if(id==="mix"){ pool = TOPICS.flatMap(t => t.qs.map(q => [...q, t.name])); n = 20; }
+  else pool = topic.qs.map(q => [...q, topic.name]);
+  const qs = shuffle(pool).slice(0,n).map(([q,o,e,tn]) => ({q, correct:o[0], opts:shuffle(o), e, tn}));
+  state = {mode:"quiz", id, topic, qs, i:0, score:0, misses:[]};
+  showQ();
+}
+
+function bar(){
+  const s = state, n = s.qs.length;
+  return `<div class="bar"><button class="back" id="back">← Temas</button><div class="prog"><i style="width:${s.i/n*100}%"></i></div><span class="count">${Math.min(s.i+1,n)} / ${n}</span></div>`;
+}
+
+function showQ(){
+  const s = state, q = s.qs[s.i];
+  const notes = s.topic ? `<details class="notes" ${s.i===0?"open":""}><summary>Repaso rápido: ${esc(s.topic.name)}</summary><div class="body">${s.topic.notes}</div></details>` : "";
+  $app.innerHTML = bar() + notes + `
+  <div class="card">
+    <span class="tag">${esc(q.tn)}</span>
+    <div class="q">${esc(q.q)}</div>
+    <div class="opts">${q.opts.map((o,k) => `<button class="opt" data-k="${k}"><span class="k">${k+1}</span><span>${esc(o)}</span></button>`).join("")}</div>
+    <div id="fb"></div>
+  </div>`;
+  $app.querySelector("#back").onclick = home;
+  const btns = [...$app.querySelectorAll(".opt")];
+  const pick = k => {
+    if(s.answered) return; s.answered = true;
+    const chosen = q.opts[k], right = chosen===q.correct;
+    btns.forEach((b,j) => { b.disabled = true; if(q.opts[j]===q.correct) b.classList.add("ok"); });
+    if(right) s.score++; else { btns[k].classList.add("bad"); s.misses.push({q:q.q, yours:chosen, correct:q.correct, e:q.e}); }
+    const last = s.i===s.qs.length-1;
+    $app.querySelector("#fb").innerHTML = `<div class="fb ${right?"ok":"bad"}">${right?"¡Correcto!":"Respuesta correcta: "+esc(q.correct)}<p>${esc(q.e)}</p></div>
+      <div class="row" style="margin-top:12px"><button class="btn" id="next">${last?"Ver resultado":"Siguiente →"}</button></div>`;
+    $app.querySelector("#next").onclick = next;
+    $app.querySelector("#next").focus();
+  };
+  s.answered = false;
+  btns.forEach((b,k) => b.onclick = () => pick(k));
+  onKey = e => { const k = parseInt(e.key,10)-1; if(!s.answered && k>=0 && k<btns.length) pick(k); };
+}
+
+function next(){
+  state.i++;
+  if(state.i < state.qs.length) state.mode==="quiz" ? showQ() : showPic(); else end();
+}
+
+function end(){
+  const s = state, n = s.qs.length, pct = Math.round(s.score/n*100);
+  const prev = store.get("best:"+s.id); if(prev==null || pct>prev) store.set("best:"+s.id, pct);
+  const msg = pct>=90 ? "¡Excelente! Estás listo para la prueba." : pct>=70 ? "¡Muy bien! Repasa los errores y vuelve a intentar." : pct>=50 ? "Vas bien. Lee el repaso rápido y juega otra ronda." : "Lee el repaso rápido con calma y vuelve a intentar.";
+  const miss = s.misses.length ? `<h3>Para repasar</h3><ul class="miss">${s.misses.map(m => `<li><b>${esc(m.q)}</b><br>Tu respuesta: ${esc(m.yours||"—")} · <span class="c">Correcta: ${esc(m.correct)}</span>${m.e?`<br><span class="hint">${esc(m.e)}</span>`:""}</li>`).join("")}</ul>` : `<p class="hint">Sin errores en esta ronda.</p>`;
+  onKey = null;
+  $app.innerHTML = `<div class="bar"><button class="back" id="back">← Temas</button></div>
+  <div class="card"><span class="tag">Resultado</span><div class="score">${s.score} / ${n}</div><p style="margin:0;font-weight:700">${msg}</p>
+  <div class="row"><button class="btn" id="again">Otra ronda</button><button class="btn ghost" id="home">Volver a temas</button></div></div>
+  <div class="card">${miss}</div>`;
+  $app.querySelector("#back").onclick = home;
+  $app.querySelector("#home").onclick = home;
+  $app.querySelector("#again").onclick = () => s.mode==="quiz" ? startQuiz(s.id) : startPics();
+}
+
+// --- Sección de imágenes ---
+function norm(t){
+  return " " + t.toLowerCase().replace(/[’`´]/g,"'")
+    .replace(/\b(she|he|it|baby)'s\b/g,"$1 is").replace(/\b(they|we|you)'re\b/g,"$1 are").replace(/\bi'm\b/g,"i am")
+    .replace(/[^a-z' ]/g," ").replace(/\s+/g," ").trim() + " ";
+}
+function check(text, groups){
+  const t = norm(text);
+  return groups.map(g => g.some(v => t.includes(" "+v+" ")));
+}
+
+function startPics(){
+  const qs = shuffle(SCENES).slice(0,10).map(([s,who,a,k]) => ({s,who,a,k}));
+  state = {mode:"pics", id:"pics", qs, i:0, score:0, misses:[]};
+  showPic();
+}
+
+function showPic(){
+  const s = state, q = s.qs[s.i];
+  $app.innerHTML = bar() + `
+  <div class="card">
+    <span class="tag">What is ${q.who==="they"?"they":q.who} doing? — Present continuous</span>
+    <div class="scene" aria-hidden="true">${q.s}</div>
+    <span class="who">Empieza con: ${esc(q.who==="the baby"?"The baby…":q.who.charAt(0).toUpperCase()+q.who.slice(1)+"…")}</span>
+    <p class="hint">Dilo en voz alta y luego escríbelo. Si solo quieres decirlo, deja el espacio vacío y presiona “Ver respuesta”.</p>
+    <input type="text" id="ans" autocomplete="off" spellcheck="false" placeholder="${q.who==="they"?"They're…":q.who==="the baby"?"The baby's…":q.who==="she"?"She's…":"He's…"}">
+    <div class="row" id="acts"><button class="btn" id="chk">Comprobar</button><button class="btn ghost" id="show">Ver respuesta</button></div>
+    <div id="fb"></div>
+  </div>`;
+  $app.querySelector("#back").onclick = home;
+  const inp = $app.querySelector("#ans");
+  inp.focus();
+  s.answered = false;
+  const model = `<div class="model">${esc(q.a)} <button class="say" id="say">🔊 Escuchar</button></div>`;
+  const nextBtn = last => `<button class="btn" id="next">${last?"Ver resultado":"Siguiente →"}</button>`;
+  const finish = (right, extra) => {
+    s.answered = true; inp.disabled = true;
+    const last = s.i===s.qs.length-1;
+    $app.querySelector("#acts").innerHTML = nextBtn(last);
+    $app.querySelector("#fb").innerHTML = extra;
+    const say = $app.querySelector("#say"); if(say) say.onclick = () => speak(q.a);
+    $app.querySelector("#next").onclick = next; $app.querySelector("#next").focus();
+  };
+  const doCheck = () => {
+    if(s.answered) return;
+    const text = inp.value.trim();
+    if(!text){ reveal(); return; }
+    const res = check(text, q.k), right = res.every(Boolean);
+    let why = "";
+    if(!right){
+      if(!res[0]) why = q.who==="the baby" ? "Te falta el verbo to be: The baby <b>is</b> …" : q.who==="they" ? "Te falta <b>They are</b> (They're) al inicio." : `Te falta <b>${q.who==="she"?"She is":"He is"}</b> (${q.who==="she"?"She's":"He's"}) al inicio.`;
+      else if(!/\b\w+ing\b/.test(norm(text))) why = "Te falta el verbo con <b>-ing</b>.";
+      else why = "Revisa el verbo o la palabra clave de la imagen.";
+    }
+    if(right) s.score++; else s.misses.push({q:q.s+"  ("+q.who+")", yours:text, correct:q.a, e:""});
+    finish(right, `<div class="fb ${right?"ok":"bad"}">${right?"¡Correcto!":"Casi…"}${why?`<p>${why}</p>`:""}</div>${model}`);
+    if(right) speak(q.a);
+  };
+  const reveal = () => {
+    if(s.answered) return;
+    $app.querySelector("#acts").innerHTML = `<button class="btn" id="good">Lo dije bien ✓</button><button class="btn ghost" id="badb">Me equivoqué ✗</button>`;
+    $app.querySelector("#fb").innerHTML = model;
+    $app.querySelector("#say").onclick = () => speak(q.a);
+    speak(q.a);
+    $app.querySelector("#good").onclick = () => { s.score++; finish(true, `<div class="fb ok">¡Bien!</div>${model}`); };
+    $app.querySelector("#badb").onclick = () => { s.misses.push({q:q.s+"  ("+q.who+")", yours:"", correct:q.a, e:""}); finish(false, `<div class="fb bad">Repítelo en voz alta un par de veces.</div>${model}`); };
+  };
+  $app.querySelector("#chk").onclick = doCheck;
+  $app.querySelector("#show").onclick = reveal;
+  inp.addEventListener("keydown", e => { if(e.key==="Enter"){ e.preventDefault(); if(!s.answered) doCheck(); else next(); } });
+  onKey = null;
+}
+
+home();
+</script>
